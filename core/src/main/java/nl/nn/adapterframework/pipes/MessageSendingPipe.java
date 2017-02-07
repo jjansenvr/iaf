@@ -109,7 +109,6 @@ import org.apache.commons.lang.SystemUtils;
  * <tr><td>{@link #setCorrelationIDStyleSheet(String) correlationIDStyleSheet}</td><td>stylesheet to extract correlationID from message</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setCorrelationIDSessionKey(String) correlationIDSessionKey}</td><td>Key of a PipeLineSession-variable. Is specified, the value of the PipeLineSession variable is used as input for the XpathExpression or StyleSheet, instead of the current input message</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setHideRegex(String) hideRegex}</td><td>Regular expression to mask strings in the error/logstore. Everything character between to strings in this expression will be replaced by a '*'that fits the expression is replaced. For Example, the regular expression (?&lt;=&lt;Party&gt;).*?(?=&lt;/Party&gt;) will replace every character between keys <party> and </party></td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setHideMethod(String) hideMethod}</td><td>(only used when hideRegex is not empty) either <code>all</code> or <code>firstHalf</code>. When <code>firstHalf</code> only the first half of the string is masked, otherwise (<code>all</code>) the entire string is masked</td><td>"all"</td></tr>
  * <tr><td>{@link #setLabelXPath(String) labelXPath}</td><td>xpath expression to extract label from message</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setLabelNamespaceDefs(String) labelNamespaceDefs}</td><td>namespace defintions for labelXPath. Must be in the form of a comma or space separated list of <code>prefix=namespaceuri</code>-definitions</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setLabelStyleSheet(String) labelStyleSheet}</td><td>stylesheet to extract label from message</td><td>&nbsp;</td></tr>
@@ -228,7 +227,6 @@ public class MessageSendingPipe extends FixedForwardPipe implements HasSender, H
 	private ListenerProcessor listenerProcessor;
 
 	private String hideRegex = null;
-	private String hideMethod = "all";
 
 	private boolean streamResultToServlet=false;
 
@@ -581,21 +579,13 @@ public class MessageSendingPipe extends FixedForwardPipe implements HasSender, H
 					if (sender instanceof MailSender) {
 						String messageInMailSafeForm = (String)session.get("messageInMailSafeForm");
 						if (hideRegex != null){
-							if (getHideMethod().equalsIgnoreCase("FIRSTHALF")) {
-								messageInMailSafeForm = Misc.hideFirstHalf(messageInMailSafeForm, hideRegex);
-							} else {
-								messageInMailSafeForm = Misc.hideAll(messageInMailSafeForm, hideRegex);
-							}
+							messageInMailSafeForm = messageInMailSafeForm.replaceAll(hideRegex,"$1**********$2");
 						}
 						messageLog.storeMessage(storedMessageID,correlationID,new Date(),messageTrail,label,messageInMailSafeForm);
 					} else {
 						String message = (String)input;
 						if (hideRegex != null){
-							if (getHideMethod().equalsIgnoreCase("FIRSTHALF")) {
-								message = Misc.hideFirstHalf(message, hideRegex);
-							} else {
-								message = Misc.hideAll(message, hideRegex);
-							}
+							message = message.replaceAll(hideRegex,"$1**********$2");
 						}
 						messageLog.storeMessage(storedMessageID,correlationID,new Date(),messageTrail,label,message);
 					}
@@ -1129,14 +1119,6 @@ public class MessageSendingPipe extends FixedForwardPipe implements HasSender, H
 
 	public String getHideRegex() {
 		return hideRegex;
-	}
-
-	public void setHideMethod(String hideMethod) {
-		this.hideMethod = hideMethod;
-	}
-
-	public String getHideMethod() {
-		return hideMethod;
 	}
 
 	public void setStreamResultToServlet(boolean b) {

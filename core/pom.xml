@@ -11,7 +11,7 @@
   <name>Ibis AdapterFramework core</name>
 
   <properties>
-    <spring.version>3.2.16.RELEASE</spring.version>
+    <spring.version>5.2.6.RELEASE</spring.version>
     <opencmis.version>0.12.0</opencmis.version>
     <resteasy.version>3.0.4.Final</resteasy.version>
   </properties>
